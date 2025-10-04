@@ -1,6 +1,7 @@
- import { Request, Response } from 'express';
+import { Request, Response } from 'express';
 import Lesson from '../models/lessonModel';
 import Course from '../models/courseModel';
+import mongoose from 'mongoose';
 
 const addLessonToCourse = async (req: Request, res: Response): Promise<void> => {
   try {
@@ -56,6 +57,11 @@ const updateLesson = async (req: Request, res: Response): Promise<void> => {
       return;
     }
 
+    if (lesson.course instanceof mongoose.Types.ObjectId) {
+      res.status(500).json({ message: 'Server error: Could not populate course details.' });
+      return;
+    }
+
     if (lesson.course.instructor.toString() !== req.user._id.toString()) {
       res.status(403).json({ message: 'User not authorized to update this lesson' });
       return;
@@ -79,6 +85,11 @@ const deleteLesson = async (req: Request, res: Response): Promise<void> => {
     const lesson = await Lesson.findById(req.params.lessonId).populate('course');
     if (!lesson) {
       res.status(404).json({ message: 'Lesson not found' });
+      return;
+    }
+
+    if (lesson.course instanceof mongoose.Types.ObjectId) {
+      res.status(500).json({ message: 'Server error: Could not populate course details.' });
       return;
     }
 

@@ -1,5 +1,6 @@
  import { Request, Response } from "express";
 import Course from "../models/courseModel";
+import mongoose from "mongoose";
 
 const createCourse = async (req: Request, res: Response): Promise<void> => {
     try {
@@ -44,6 +45,14 @@ const getAllCourses = async (req: Request, res: Response): Promise<void> => {
 
 const getCourseById = async (req: Request, res: Response): Promise<void> => {
     try {
+
+        const { id } = req.params;
+
+        // Validate if id is a valid ObjectId
+        if (!mongoose.isValidObjectId(id)) {
+            res.status(400).json({ message: "Invalid course ID" });
+            return;
+        }
         const course = await Course.findById(req.params.id)
             .populate("instructor", "name email");
 
@@ -109,10 +118,22 @@ const deleteCourse = async (req: Request, res: Response): Promise<void> => {
     }
 };
 
+const getMyCreatedCourses = async (req: Request, res: Response): Promise<void> => {
+    try {
+        const courses = await Course.find({ instructor: req.user._id });
+        res.status(200).json(courses);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server Error' });
+    }
+};
+
+
 export {
     createCourse,
     getAllCourses,
     getCourseById,
     updateCourse,
     deleteCourse,
+    getMyCreatedCourses,
 };

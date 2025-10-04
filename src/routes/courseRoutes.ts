@@ -1,11 +1,13 @@
- import express from "express";
+import express from "express";
 import {
   createCourse,
   getAllCourses,
   getCourseById,
   updateCourse,
   deleteCourse,
+  getMyCreatedCourses,
 } from "../controllers/courseController";
+
 import {
   addLessonToCourse,
   getLessonsForCourse,
@@ -18,6 +20,9 @@ router
   .route("/")
   .post(protect, isInstructor, createCourse)
   .get(getAllCourses);
+  
+router.route('/my-creations')
+  .get(protect, isInstructor, getMyCreatedCourses);
 
 router
   .route("/:id")

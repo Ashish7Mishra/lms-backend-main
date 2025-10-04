@@ -1,7 +1,9 @@
- import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Document, Schema, Model } from "mongoose";
+import { ICourse } from './courseModel';
+
 
 export interface ILesson extends Document {
-  course: mongoose.Types.ObjectId;
+  course: mongoose.Types.ObjectId | ICourse; 
   title: string;
   content: string;
   order: number;
