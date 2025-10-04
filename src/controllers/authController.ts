@@ -34,7 +34,7 @@ const registerUser = async (req: Request, res: Response): Promise<void> => {
                 _id: user._id,
                 name: user.name,
                 email: user.email,
-                password: user.email, // Note: This seems like a typo; should probably be user.password
+                password: user.password, 
                 role: user.role,
             });
         } else {
