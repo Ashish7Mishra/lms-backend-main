@@ -1,4 +1,4 @@
- import { Request, Response } from "express";
+import { Request, Response } from "express";
 import Enrollment from "../models/enrollmentModel";
 import Course from "../models/courseModel";
 import Lesson from "../models/lessonModel";
@@ -34,7 +34,24 @@ const enrollInCourse = async (req: Request, res: Response): Promise<void> => {
 const getMyEnrollments = async (req: Request, res: Response): Promise<void> => {
   try {
     const enrollments = await Enrollment.find({ student: req.user._id })
-      .populate("course", "title description category imageUrl");
+      .populate("course", "title");
+
+    const enrollmentsWithProgress = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        const totalLessons = await Lesson.countDocuments({
+          course: enrollment.course._id,
+        });
+        const completedLessonsCount = enrollment.completedLessons.length;
+
+        const progress = totalLessons > 0 ? (completedLessonsCount / totalLessons) * 100 : 0;
+
+        return {
+          ...enrollment.toObject(), 
+          progress: Math.round(progress),
+          totalLessons: totalLessons, 
+        };
+      })
+    );
 
     res.status(200).json(enrollments);
   } catch (error: any) {

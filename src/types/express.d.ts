@@ -1,4 +1,3 @@
-// types/express.d.ts
 import { IUser } from "../src/models/userModel"; // Adjust path if needed
 
 declare global {
