@@ -23,7 +23,7 @@ const swaggerDefinition: SwaggerDefinition = {
       description: "Development server",
     },
     {
-      url: "https://abhishek.render.com", // TODO: Change to the production server
+      url: "https://lms-backend-main.onrender.com/",
       description: "Production server",
     },
   ],
