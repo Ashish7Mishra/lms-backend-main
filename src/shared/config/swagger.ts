@@ -19,11 +19,11 @@ const swaggerDefinition: SwaggerDefinition = {
   },
   servers: [
     {
-      url: "http://localhost:8001",
+      url: "http://localhost:5000",
       description: "Development server",
     },
     {
-      url: "https://api.lms.com", // TODO: Change to the production server
+      url: "https://abhishek.render.com", // TODO: Change to the production server
       description: "Production server",
     },
   ],
