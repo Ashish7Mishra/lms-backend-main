@@ -7,7 +7,7 @@
     "strict": true,
     "skipLibCheck": true,
 
-    "module": "nodenext",                 
+    "module": "commonjs",                 
     "moduleResolution": "nodenext",        
 
     "outDir": "./dist",
