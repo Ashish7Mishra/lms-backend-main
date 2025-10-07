@@ -58,6 +58,14 @@ export class EnrollmentService {
   static async getEnrollmentWithProgress(
     enrollment: IEnrollment
   ): Promise<any> {
+    if (!enrollment.course || !enrollment.course._id) {
+      return {
+        ...enrollment.toObject(),
+        progress: 0,
+        totalLessons: 0,
+      };
+    }
+
     const totalLessons = await LessonService.countLessonsForCourse(
       enrollment.course._id.toString()
     );
