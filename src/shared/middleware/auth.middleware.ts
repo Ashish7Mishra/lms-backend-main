@@ -7,6 +7,32 @@ interface JwtPayload {
   role: string;
 }
 
+export const injectUser = async (
+  req: Request,
+  res: Response,
+  next: NextFunction
+): Promise<void> => {
+  let token: string | undefined;
+
+  if (
+    req.headers.authorization &&
+    req.headers.authorization.startsWith("Bearer")
+  ) {
+    try {
+      token = req.headers.authorization.split(" ")[1];
+      const decode = jwt.verify(
+        token,
+        process.env.JWT_SECRET as string
+      ) as JwtPayload;
+      req.user = await UserService.findUserById(decode.id);
+    } catch (error: any) {
+      console.error("Optional auth error:", error.message);
+    }
+  }
+
+  next();
+};
+
 export const protect = async (
   req: Request,
   res: Response,
