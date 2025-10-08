@@ -35,6 +35,7 @@ export class EnrollmentService {
     const enrollments = await Enrollment.find({ student: studentId })
       .populate({
       path: "course",
+        select: "title description category imageUrl isActive",
       populate: { path: "instructor", select: "name email" },
     })
       .sort(queryOptions.sort)
