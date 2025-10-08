@@ -33,7 +33,10 @@ export class EnrollmentService {
     const totalItems = await Enrollment.countDocuments({ student: studentId });
 
     const enrollments = await Enrollment.find({ student: studentId })
-      .populate("course", "title instructor")
+      .populate({
+      path: "course",
+      populate: { path: "instructor", select: "name email" },
+    })
       .sort(queryOptions.sort)
       .skip(queryOptions.skip)
       .limit(queryOptions.limit);
@@ -58,6 +61,14 @@ export class EnrollmentService {
   static async getEnrollmentWithProgress(
     enrollment: IEnrollment
   ): Promise<any> {
+    if (!enrollment.course || !enrollment.course._id) {
+      return {
+        ...enrollment.toObject(),
+        progress: 0,
+        totalLessons: 0,
+      };
+    }
+
     const totalLessons = await LessonService.countLessonsForCourse(
       enrollment.course._id.toString()
     );
