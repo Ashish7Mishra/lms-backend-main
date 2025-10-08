@@ -4,12 +4,18 @@ import { PaginationUtil } from "../../../shared/utils/pagination.util";
 import { ResponseUtil } from "../../../shared/utils/response.util";
 
 export class CourseController {
+
   static async createCourse(req: Request, res: Response): Promise<void> {
+   
     try {
-      const { title, description, category, imageUrl } = req.body;
+      const { title, description, category } = req.body;
 
       if (!title || !description || !category) {
         ResponseUtil.validationError(res, "Please provide all fields");
+        return;
+      }
+      if (!req.file) {
+        ResponseUtil.validationError(res, "Course image is required");
         return;
       }
 
@@ -18,11 +24,9 @@ export class CourseController {
         description,
         category,
         instructor: (req.user!._id as any).toString(),
+        imageUrl: req.file.path,
       };
 
-      if (imageUrl) {
-        courseData.imageUrl = imageUrl;
-      }
 
       const course = await CourseService.createCourse(courseData);
       ResponseUtil.success(res, course, "Course created successfully", 201);
@@ -39,10 +43,10 @@ export class CourseController {
         res
       );
       if (!paginationOptions) return;
-       const userId = req.user?._id?.toString();
-       
+      const userId = req.user?._id?.toString();
 
-      const result = await CourseService.getAllCourses(paginationOptions,userId);
+
+      const result = await CourseService.getAllCourses(paginationOptions, userId);
       ResponseUtil.successWithPagination(
         res,
         result.data,
@@ -94,13 +98,15 @@ export class CourseController {
         return;
       }
 
-      const { title, description, category, imageUrl } = req.body;
+      const { title, description, category } = req.body;
       const updateData: any = {};
 
       if (title) updateData.title = title;
       if (description) updateData.description = description;
       if (category) updateData.category = category;
-      if (imageUrl) updateData.imageUrl = imageUrl;
+      if (req.file) {
+        updateData.imageUrl = req.file.path;
+      }
 
       const updatedCourse = await CourseService.updateCourse(
         courseId,

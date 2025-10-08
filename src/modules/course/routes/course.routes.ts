@@ -4,6 +4,7 @@ import {
   protect,
   isInstructor,injectUser 
 } from "../../../shared/middleware/auth.middleware";
+import { uploadCourseImage } from "../../../shared/middleware/upload.middleware";
 
 import { PaginationUtil } from "../../../shared/utils/pagination.util";
 
@@ -254,7 +255,7 @@ router.get("/:id", CourseController.getCourseById);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/", protect, isInstructor, CourseController.createCourse);
+router.post("/", protect, isInstructor,uploadCourseImage, CourseController.createCourse);
 
 /**
  * @swagger
@@ -333,7 +334,7 @@ router.post("/", protect, isInstructor, CourseController.createCourse);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:id", protect, CourseController.updateCourse);
+router.put("/:id", protect,uploadCourseImage, CourseController.updateCourse);
 
 /**
  * @swagger

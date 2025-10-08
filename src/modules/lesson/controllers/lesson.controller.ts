@@ -41,6 +41,10 @@ export class LessonController {
         course: courseId,
       });
 
+      if (req.file) {
+        lesson.videoUrl = req.file.path;
+      }
+
       ResponseUtil.success(res, lesson, "Lesson created successfully", 201);
     } catch (error: any) {
       console.error(error);
@@ -78,7 +82,6 @@ export class LessonController {
       const lessonId = req.params.lessonId;
       const instructorId = (req.user!._id as any).toString();
 
-      // Check if user owns the lesson
       const isOwner = await LessonService.checkLessonOwnership(
         lessonId,
         instructorId
@@ -97,6 +100,10 @@ export class LessonController {
       if (title) updateData.title = title;
       if (content) updateData.content = content;
       if (order) updateData.order = order;
+
+      if (req.file) {
+        updateData.videoUrl = req.file.path;
+      }
 
       const updatedLesson = await LessonService.updateLesson(
         lessonId,
