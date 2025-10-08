@@ -38,6 +38,11 @@ export class CourseService {
       .lean();
 
     if (!userId) {
+      const coursesWithDefaults = courses.map((course) => ({
+        ...course,
+        enrolled: false,
+        progress: 0,
+      }));
       return PaginationUtil.createPaginationResult(courses, totalItems, options);
     }
 
@@ -71,13 +76,13 @@ export class CourseService {
 
         return {
           ...course,
-          enrollment: enrollment, // You can also return just 'true' or the enrollment ID
+          enrollment: true, // You can also return just 'true' or the enrollment ID
           progress: Math.round(progress),
         };
       } else {
         return {
           ...course,
-          enrollment: null,
+          enrollment: false,
           progress: 0,
         };
       }
