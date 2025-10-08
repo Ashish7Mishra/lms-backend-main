@@ -6,6 +6,7 @@ export interface ICourse extends Document {
   description: string;
   category: string;
   imageUrl?: string;
+  isActive: boolean;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -31,6 +32,10 @@ const courseSchema: Schema<ICourse> = new mongoose.Schema(
     },
     imageUrl: {
       type: String,
+    },
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
