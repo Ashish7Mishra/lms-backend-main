@@ -1,6 +1,7 @@
 import express from "express";
 import { LessonController } from "../controllers/lesson.controller";
 import { protect } from "../../../shared/middleware/auth.middleware";
+import { uploadLessonVideo } from "../../../shared/middleware/upload.middleware";
 
 const router = express.Router();
 
@@ -156,7 +157,7 @@ router.get("/course/:courseId", LessonController.getLessonsForCourse);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/course/:courseId", protect, LessonController.addLessonToCourse);
+router.post("/course/:courseId", protect, uploadLessonVideo,LessonController.addLessonToCourse);
 
 /**
  * @swagger
@@ -225,7 +226,7 @@ router.post("/course/:courseId", protect, LessonController.addLessonToCourse);
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:lessonId", protect, LessonController.updateLesson);
+router.put("/:lessonId", protect, uploadLessonVideo,LessonController.updateLesson);
 
 /**
  * @swagger

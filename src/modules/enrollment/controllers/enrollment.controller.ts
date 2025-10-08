@@ -3,12 +3,19 @@ import { EnrollmentService } from "../services/enrollment.service";
 import { LessonService } from "../../lesson/services/lesson.service";
 import { PaginationUtil } from "../../../shared/utils/pagination.util";
 import { ResponseUtil } from "../../../shared/utils/response.util";
+import { CourseService } from "../../course/services/course.service";
 
 export class EnrollmentController {
   static async enrollInCourse(req: Request, res: Response): Promise<void> {
     try {
       const { courseId } = req.body;
       const studentId = (req.user!._id as any).toString();
+
+      const course = await CourseService.getCourseById(courseId);
+      if (!course || !course.isActive) {
+        ResponseUtil.notFound(res, "Course not found or is inactive");
+        return;
+      }
 
       const alreadyEnrolled = await EnrollmentService.findEnrollment(
         studentId,

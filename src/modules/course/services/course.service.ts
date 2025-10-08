@@ -26,6 +26,8 @@ export class CourseService {
     userId?: string
   ): Promise<PaginationResult<any>> {
     const queryOptions = PaginationUtil.createMongoQueryOptions(options);
+
+
     const totalItems = await Course.countDocuments({});
 
     const courses = await Course.find({})
@@ -88,7 +90,10 @@ export class CourseService {
     if (!mongoose.isValidObjectId(id)) {
       throw new Error("Invalid course ID");
     }
-    return await Course.findById(id).populate("instructor", "name email");
+    return await Course.findById(id).populate(
+      "instructor",
+      "name email"
+    );
   }
 
   static async updateCourse(
@@ -105,6 +110,11 @@ export class CourseService {
       throw new Error("Course not found");
     }
 
+    if (!course.isActive) {
+      throw new Error("Cannot update an inactive course");
+    }
+
+
     Object.assign(course, updateData);
     return await course.save();
   }
@@ -114,7 +124,8 @@ export class CourseService {
     if (!course) {
       throw new Error("Course not found");
     }
-    await course.deleteOne();
+    course.isActive = false;
+    await course.save();
   }
 
   static async getCoursesByInstructor(
