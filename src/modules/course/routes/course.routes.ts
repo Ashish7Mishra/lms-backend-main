@@ -2,8 +2,9 @@ import express from "express";
 import { CourseController } from "../controllers/course.controller";
 import {
   protect,
-  isInstructor,
+  isInstructor,injectUser 
 } from "../../../shared/middleware/auth.middleware";
+
 import { PaginationUtil } from "../../../shared/utils/pagination.util";
 
 const router = express.Router();
@@ -74,7 +75,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", CourseController.getAllCourses);
+router.get("/", injectUser,CourseController.getAllCourses);
 /**
  * @swagger
  * /api/courses/my-courses:

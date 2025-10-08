@@ -39,8 +39,10 @@ export class CourseController {
         res
       );
       if (!paginationOptions) return;
+       const userId = req.user?._id?.toString();
+       
 
-      const result = await CourseService.getAllCourses(paginationOptions);
+      const result = await CourseService.getAllCourses(paginationOptions,userId);
       ResponseUtil.successWithPagination(
         res,
         result.data,

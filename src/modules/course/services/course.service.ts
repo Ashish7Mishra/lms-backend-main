@@ -5,8 +5,11 @@ import {
   PaginationResult,
   PaginationUtil,
 } from "../../../shared/utils/pagination.util";
+import Enrollment from "../../enrollment/models/enrollment.model";
+import Lesson from "../../lesson/models/lesson.model";
 
 export class CourseService {
+
   static async createCourse(courseData: {
     title: string;
     description: string;
@@ -19,8 +22,9 @@ export class CourseService {
   }
 
   static async getAllCourses(
-    options: PaginationOptions
-  ): Promise<PaginationResult<ICourse>> {
+    options: PaginationOptions,
+    userId?: string
+  ): Promise<PaginationResult<any>> {
     const queryOptions = PaginationUtil.createMongoQueryOptions(options);
     const totalItems = await Course.countDocuments({});
 
@@ -28,9 +32,56 @@ export class CourseService {
       .populate("instructor", "name email")
       .sort(queryOptions.sort)
       .skip(queryOptions.skip)
-      .limit(queryOptions.limit);
+      .limit(queryOptions.limit)
+      .lean();
 
-    return PaginationUtil.createPaginationResult(courses, totalItems, options);
+    if (!userId) {
+      return PaginationUtil.createPaginationResult(courses, totalItems, options);
+    }
+
+    const courseIds = courses.map((course) => course._id);
+    const userEnrollments = await Enrollment.find({
+      student: userId,
+      course: { $in: courseIds },
+    });
+    const enrolledCourseIds = userEnrollments.map(e => e.course);
+    const lessonCountsResult = await Lesson.aggregate([
+      { $match: { course: { $in: enrolledCourseIds } } },
+      { $group: { _id: '$course', totalLessons: { $sum: 1 } } }
+    ]);
+
+    const enrollmentMap = new Map(
+      userEnrollments.map((e) => [e.course.toString(), e])
+    );
+    const lessonCountMap = new Map(
+      lessonCountsResult.map(lc => [lc._id.toString(), lc.totalLessons])
+    );
+    // 4. Add 'enrollment' and 'progress' to each course object
+    const coursesWithProgress = courses.map((course) => {
+      const enrollment = enrollmentMap.get(course._id.toString());
+
+      if (enrollment) {
+        const totalLessons = lessonCountMap.get(course._id.toString()) || 0;
+        const progress =
+          totalLessons > 0
+            ? (enrollment.completedLessons.length / totalLessons) * 100
+            : 0;
+
+        return {
+          ...course,
+          enrollment: enrollment, // You can also return just 'true' or the enrollment ID
+          progress: Math.round(progress),
+        };
+      } else {
+        return {
+          ...course,
+          enrollment: null,
+          progress: 0,
+        };
+      }
+    });
+
+    return PaginationUtil.createPaginationResult(coursesWithProgress, totalItems, options);
   }
 
   static async getCourseById(id: string): Promise<ICourse | null> {

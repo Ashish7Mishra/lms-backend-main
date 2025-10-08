@@ -33,7 +33,10 @@ export class EnrollmentService {
     const totalItems = await Enrollment.countDocuments({ student: studentId });
 
     const enrollments = await Enrollment.find({ student: studentId })
-      .populate("course", "title instructor")
+      .populate({
+      path: "course",
+      populate: { path: "instructor", select: "name email" },
+    })
       .sort(queryOptions.sort)
       .skip(queryOptions.skip)
       .limit(queryOptions.limit);
