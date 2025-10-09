@@ -13,6 +13,7 @@ export class LessonService {
     content: string;
     order: number;
     course: string;
+    videoUrl: string;
   }): Promise<ILesson> {
     const lesson = await Lesson.create(lessonData);
     return lesson;
@@ -44,6 +45,7 @@ export class LessonService {
       title?: string;
       content?: string;
       order?: number;
+      videoUrl?: string;
     }
   ): Promise<ILesson | null> {
     const lesson = await Lesson.findById(lessonId);

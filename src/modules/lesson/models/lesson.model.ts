@@ -6,7 +6,7 @@ export interface ILesson extends Document {
   title: string;
   content: string;
   order: number;
-  videoUrl?: string;
+  videoUrl: string;
   createdAt: Date;
   updatedAt: Date;
 }
@@ -32,6 +32,7 @@ const lessonSchema: Schema<ILesson> = new mongoose.Schema(
     },
     videoUrl: {
       type: String,
+      required:true,
     },
   },
   {
