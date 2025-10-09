@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { CourseService } from "../services/course.service";
 import { PaginationUtil } from "../../../shared/utils/pagination.util";
 import { ResponseUtil } from "../../../shared/utils/response.util";
+import { EnrollmentService } from "../../enrollment/services/enrollment.service";
 
 export class CourseController {
 
@@ -156,6 +157,7 @@ export class CourseController {
       }
     }
   }
+  
 
   static async getMyCreatedCourses(req: Request, res: Response): Promise<void> {
     try {
@@ -180,4 +182,52 @@ export class CourseController {
       ResponseUtil.error(res, "Server Error", 500);
     }
   }
+
+  static async getEnrolledStudents(req: Request, res: Response): Promise<void> {
+    try {
+      
+      const { courseId } = req.params;
+      const instructorId = (req.user!._id as any).toString();
+
+    
+      const isOwner = await CourseService.checkCourseOwnership(
+        courseId,
+        instructorId
+      );
+      if (!isOwner) {
+        ResponseUtil.forbidden(
+          res,
+          "You are not authorized to view students for this course"
+        );
+        return;
+      }
+
+      // Handle pagination
+      const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
+      if (!paginationOptions) return;
+
+      // Fetch the students from the EnrollmentService
+      const result = await EnrollmentService.getStudentsForCourse(
+        courseId,
+        paginationOptions
+      );
+
+      ResponseUtil.successWithPagination(
+        res,
+        result.data,
+        result.pagination,
+        "Enrolled students retrieved successfully"
+      );
+    } catch (error: any) {
+      console.error(error);
+      if (error.message === "Course not found") {
+        ResponseUtil.notFound(res, error.message);
+      } else {
+        ResponseUtil.error(res, "Server Error", 500);
+      }
+    }
+  }
 }
+
+  
+

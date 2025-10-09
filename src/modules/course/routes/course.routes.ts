@@ -187,6 +187,12 @@ router.get("/my-courses", protect, CourseController.getMyCreatedCourses);
  *               $ref: '#/components/schemas/Error'
  */
 router.get("/:id", CourseController.getCourseById);
+router.get(
+  "/:courseId/students",
+  protect,
+  isInstructor,
+  CourseController.getEnrolledStudents
+);
 
 /**
  * @swagger

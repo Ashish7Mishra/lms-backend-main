@@ -5,6 +5,7 @@ import {
   PaginationResult,
   PaginationUtil,
 } from "../../../shared/utils/pagination.util";
+import { IUser } from "../../user/models/user.model";
 
 export class EnrollmentService {
   static async createEnrollment(enrollmentData: {
@@ -111,5 +112,29 @@ export class EnrollmentService {
       data: enrollmentsWithProgress,
       pagination: result.pagination,
     };
+
+  }
+
+   static async getStudentsForCourse(
+    courseId: string,
+    options: PaginationOptions
+  ): Promise<PaginationResult<IUser>> {
+    const queryOptions = PaginationUtil.createMongoQueryOptions(options);
+    const filter = { course: courseId };
+
+    const totalItems = await Enrollment.countDocuments(filter);
+
+    const enrollments = await Enrollment.find(filter)
+      .populate("student", "name email createdAt") // Get student's name, email, and registration date
+      .sort(queryOptions.sort)
+      .skip(queryOptions.skip)
+      .limit(queryOptions.limit);
+
+    // Extract just the student data to return a clean list of users
+    const students = enrollments.map(
+      (enrollment) => enrollment.student
+    ) as unknown as IUser[];
+
+    return PaginationUtil.createPaginationResult(students, totalItems, options);
   }
 }
