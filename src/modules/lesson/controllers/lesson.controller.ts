@@ -15,7 +15,12 @@ export class LessonController {
         return;
       }
 
-      // Check if course exists and user owns it
+       if (!req.file) {
+        ResponseUtil.validationError(res, "A lesson video is required");
+        return;
+      }
+
+
       const course = await CourseService.getCourseById(courseId);
       if (!course) {
         ResponseUtil.notFound(res, "Course not found");
@@ -39,6 +44,7 @@ export class LessonController {
         content,
         order,
         course: courseId,
+        videoUrl: req.file.path,
       });
 
       if (req.file) {
