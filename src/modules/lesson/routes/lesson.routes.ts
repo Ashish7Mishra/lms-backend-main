@@ -1,6 +1,6 @@
 import express from "express";
 import { LessonController } from "../controllers/lesson.controller";
-import { protect } from "../../../shared/middleware/auth.middleware";
+import { injectUser, protect } from "../../../shared/middleware/auth.middleware";
 import { uploadLessonVideo } from "../../../shared/middleware/upload.middleware";
 
 const router = express.Router();
@@ -78,7 +78,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/course/:courseId", LessonController.getLessonsForCourse);
+router.get("/course/:courseId",injectUser, LessonController.getLessonsForCourse);
 
 /**
  * @swagger

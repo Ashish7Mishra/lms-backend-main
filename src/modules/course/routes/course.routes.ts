@@ -2,7 +2,7 @@ import express from "express";
 import { CourseController } from "../controllers/course.controller";
 import {
   protect,
-  isInstructor,injectUser 
+  isInstructor, injectUser
 } from "../../../shared/middleware/auth.middleware";
 import { uploadCourseImage } from "../../../shared/middleware/upload.middleware";
 
@@ -76,7 +76,7 @@ const router = express.Router();
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.get("/", injectUser,CourseController.getAllCourses);
+router.get("/", injectUser, CourseController.getAllCourses);
 /**
  * @swagger
  * /api/courses/my-courses:
@@ -187,12 +187,8 @@ router.get("/my-courses", protect, CourseController.getMyCreatedCourses);
  *               $ref: '#/components/schemas/Error'
  */
 router.get("/:id", CourseController.getCourseById);
-router.get(
-  "/:courseId/students",
-  protect,
-  isInstructor,
-  CourseController.getEnrolledStudents
-);
+
+router.get("/:courseId/students", protect, isInstructor, CourseController.getEnrolledStudents);
 
 /**
  * @swagger
@@ -261,7 +257,7 @@ router.get(
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.post("/", protect, isInstructor,uploadCourseImage, CourseController.createCourse);
+router.post("/", protect, isInstructor, uploadCourseImage, CourseController.createCourse);
 
 /**
  * @swagger
@@ -340,7 +336,7 @@ router.post("/", protect, isInstructor,uploadCourseImage, CourseController.creat
  *             schema:
  *               $ref: '#/components/schemas/Error'
  */
-router.put("/:id", protect,uploadCourseImage, CourseController.updateCourse);
+router.put("/:id", protect, uploadCourseImage, CourseController.updateCourse);
 
 /**
  * @swagger

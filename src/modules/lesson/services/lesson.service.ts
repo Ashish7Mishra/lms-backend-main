@@ -6,6 +6,7 @@ import {
   PaginationResult,
   PaginationUtil,
 } from "../../../shared/utils/pagination.util";
+import Enrollment from "../../enrollment/models/enrollment.model";
 
 export class LessonService {
   static async createLesson(lessonData: {
@@ -21,18 +22,39 @@ export class LessonService {
 
   static async getLessonsForCourse(
     courseId: string,
-    options: PaginationOptions
-  ): Promise<PaginationResult<ILesson>> {
+    options: PaginationOptions,
+    userId?: string
+  ): Promise<PaginationResult<any>> {
     const queryOptions = PaginationUtil.createMongoQueryOptions(options);
     const totalItems = await Lesson.countDocuments({ course: courseId });
 
     const lessons = await Lesson.find({ course: courseId })
-      .populate("course", "title instructor")
+      .populate("course", "title instructor imageUrl")
       .sort(queryOptions.sort)
       .skip(queryOptions.skip)
-      .limit(queryOptions.limit);
+      .limit(queryOptions.limit)
+      .lean();
 
-    return PaginationUtil.createPaginationResult(lessons, totalItems, options);
+    if (!userId) {
+      const lessonsWithDefault = lessons.map(lesson => ({
+        ...lesson,
+        isCompleted: false,
+      }));
+      return PaginationUtil.createPaginationResult(lessonsWithDefault, totalItems, options);
+    }
+     const enrollment = await Enrollment.findOne({
+      student: userId,
+      course: courseId,
+    });
+     const completedLessonSet = new Set(
+      enrollment ? enrollment.completedLessons.map(id => id.toString()) : []
+    );
+    const lessonsWithCompletion = lessons.map(lesson => ({
+      ...lesson,
+      isCompleted: completedLessonSet.has(lesson._id.toString()),
+    }));
+     return PaginationUtil.createPaginationResult(lessonsWithCompletion, totalItems, options);
+
   }
 
   static async getLessonById(lessonId: string): Promise<ILesson | null> {

@@ -66,10 +66,12 @@ export class LessonController {
         res
       );
       if (!paginationOptions) return;
+      const userId = req.user?._id?.toString();
 
       const result = await LessonService.getLessonsForCourse(
         courseId,
-        paginationOptions
+        paginationOptions,
+        userId
       );
       ResponseUtil.successWithPagination(
         res,
