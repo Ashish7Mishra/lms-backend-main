@@ -3,6 +3,7 @@ import { UserService } from "../services/user.service";
 import { ResponseUtil } from "../../../shared/utils/response.util";
 
 export class UserController {
+
   static async registerUser(req: Request, res: Response): Promise<void> {
     try {
       const { name, email, password, role } = req.body;
@@ -12,21 +13,19 @@ export class UserController {
         return;
       }
 
-      const user = await UserService.createUser({
-        name,
-        email,
-        password,
-        role,
-      });
+      const user = await UserService.createUser({ name, email, password, role });
 
-      const userData = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-      };
-
-      ResponseUtil.success(res, userData, "User registered successfully", 201);
+      ResponseUtil.success(
+        res,
+        {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        "User registered successfully",
+        201
+      );
     } catch (error: any) {
       console.error(error);
       if (error.message === "User with this email already exists") {
@@ -51,30 +50,30 @@ export class UserController {
         ResponseUtil.unauthorized(res, "Invalid credentials");
         return;
       }
+      if (!user.isActive) {
+        ResponseUtil.forbidden(res, "Your account has been deactivated. Please contact support.");
+        return;
+      }
 
-      const isMatch = await UserService.validatePassword(
-        password,
-        user.password
-      );
+      const isMatch = await UserService.validatePassword(password, user.password);
       if (!isMatch) {
         ResponseUtil.unauthorized(res, "Invalid credentials");
         return;
       }
 
-      const token = UserService.generateToken(
-        (user._id as any).toString(),
-        user.role
+      const token = UserService.generateToken((user._id as any).toString(), user.role);
+
+      ResponseUtil.success(
+        res,
+        {
+          _id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+          token,
+        },
+        "Login successful"
       );
-
-      const userData = {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        role: user.role,
-        token,
-      };
-
-      ResponseUtil.success(res, userData, "Login successful");
     } catch (error: any) {
       console.error(error);
       ResponseUtil.error(res, "Server error", 500);

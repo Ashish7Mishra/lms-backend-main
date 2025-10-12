@@ -6,6 +6,7 @@ import { ResponseUtil } from "../../../shared/utils/response.util";
 import { CourseService } from "../../course/services/course.service";
 
 export class EnrollmentController {
+  
   static async enrollInCourse(req: Request, res: Response): Promise<void> {
     try {
       const { courseId } = req.body;
@@ -17,11 +18,7 @@ export class EnrollmentController {
         return;
       }
 
-      const alreadyEnrolled = await EnrollmentService.findEnrollment(
-        studentId,
-        courseId
-      );
-
+      const alreadyEnrolled = await EnrollmentService.findEnrollment(studentId, courseId);
       if (alreadyEnrolled) {
         ResponseUtil.validationError(res, "Already enrolled in this course");
         return;
@@ -32,12 +29,7 @@ export class EnrollmentController {
         course: courseId,
       });
 
-      ResponseUtil.success(
-        res,
-        enrollment,
-        "Successfully enrolled in course",
-        201
-      );
+      ResponseUtil.success(res, enrollment, "Successfully enrolled in course", 201);
     } catch (error: any) {
       console.error(error);
       ResponseUtil.error(res, "Server error", 500);
@@ -47,10 +39,7 @@ export class EnrollmentController {
   static async getMyEnrollments(req: Request, res: Response): Promise<void> {
     try {
       const studentId = (req.user!._id as any).toString();
-      const paginationOptions = PaginationUtil.validatePaginationParams(
-        req,
-        res
-      );
+      const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
       if (!paginationOptions) return;
 
       const result = await EnrollmentService.getStudentEnrollmentsWithProgress(
@@ -70,10 +59,7 @@ export class EnrollmentController {
     }
   }
 
-  static async markLessonAsComplete(
-    req: Request,
-    res: Response
-  ): Promise<void> {
+  static async markLessonAsComplete(req: Request, res: Response): Promise<void> {
     try {
       const { lessonId } = req.body;
       const studentId = (req.user!._id as any).toString();
@@ -88,7 +74,6 @@ export class EnrollmentController {
         studentId,
         (lesson.course._id as any).toString()
       );
-
       if (!enrollment) {
         ResponseUtil.notFound(res, "You are not enrolled in this course");
         return;
@@ -98,6 +83,7 @@ export class EnrollmentController {
         (enrollment._id as any).toString(),
         lessonId
       );
+
       ResponseUtil.success(
         res,
         { message: "Lesson marked as complete" },

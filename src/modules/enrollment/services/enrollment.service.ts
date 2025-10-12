@@ -8,49 +8,19 @@ import {
 import { IUser } from "../../user/models/user.model";
 
 export class EnrollmentService {
+  
   static async createEnrollment(enrollmentData: {
     student: string;
     course: string;
   }): Promise<IEnrollment> {
-    const enrollment = await Enrollment.create(enrollmentData);
-    return enrollment;
+    return Enrollment.create(enrollmentData);
   }
 
   static async findEnrollment(
     studentId: string,
     courseId: string
   ): Promise<IEnrollment | null> {
-    return await Enrollment.findOne({
-      student: studentId,
-      course: courseId,
-    });
-  }
-
-  static async getStudentEnrollments(
-    studentId: string,
-    options: PaginationOptions
-  ): Promise<PaginationResult<IEnrollment>> {
-    const queryOptions = PaginationUtil.createMongoQueryOptions(options);
-    const totalItems = await Enrollment.countDocuments({ student: studentId });
-
-    const enrollments = await Enrollment.find({ student: studentId })
-      .populate({
-        path: "course",
-        select: "title description category imageUrl isActive",
-        populate: { path: "instructor", select: "name email" },
-      }).populate({
-        path: "completedLessons",
-        select: "title order videoUrl course", 
-      })
-      .sort(queryOptions.sort)
-      .skip(queryOptions.skip)
-      .limit(queryOptions.limit);
-
-    return PaginationUtil.createPaginationResult(
-      enrollments,
-      totalItems,
-      options
-    );
+    return Enrollment.findOne({ student: studentId, course: courseId });
   }
 
   static async markLessonAsComplete(
@@ -63,76 +33,80 @@ export class EnrollmentService {
     );
   }
 
-  static async getEnrollmentWithProgress(
-    enrollment: IEnrollment
-  ): Promise<any> {
-    if (!enrollment.course || !enrollment.course._id) {
-      return {
-        ...enrollment.toObject(),
-        progress: 0,
-        totalLessons: 0,
-      };
-    }
-
-    const totalLessons = await LessonService.countLessonsForCourse(
-      enrollment.course._id.toString()
-    );
-    const completedLessonsCount = enrollment.completedLessons.length;
-
-    const progress =
-      totalLessons > 0 ? (completedLessonsCount / totalLessons) * 100 : 0;
-
-    return {
-      ...enrollment.toObject(),
-      progress: Math.round(progress),
-      totalLessons: totalLessons,
-    };
-  }
-
-  static async getEnrollmentsWithProgress(
-    enrollments: IEnrollment[]
-  ): Promise<any[]> {
-    return await Promise.all(
-      enrollments.map(async (enrollment) => {
-        return await this.getEnrollmentWithProgress(enrollment);
-      })
-    );
-  }
-
+  // MAIN METHOD: Get student enrollments with progress (used by controller)
   static async getStudentEnrollmentsWithProgress(
     studentId: string,
     options: PaginationOptions
   ): Promise<PaginationResult<any>> {
-    const result = await this.getStudentEnrollments(studentId, options);
-    const enrollmentsWithProgress = await this.getEnrollmentsWithProgress(
-      result.data
+    const queryOptions = PaginationUtil.createMongoQueryOptions(options);
+    const totalItems = await Enrollment.countDocuments({ student: studentId });
+
+    // Fetch enrollments with populated data
+    const enrollments = await Enrollment.find({ student: studentId })
+      .populate({
+        path: "course",
+        select: "title description category imageUrl isActive",
+        populate: { path: "instructor", select: "name email" },
+      })
+      .populate({
+        path: "completedLessons",
+        select: "title order videoUrl course",
+      })
+      .sort(queryOptions.sort)
+      .skip(queryOptions.skip)
+      .limit(queryOptions.limit);
+
+    // Calculate progress for each enrollment
+    const enrollmentsWithProgress = await Promise.all(
+      enrollments.map(async (enrollment) => {
+        // Handle case where course doesn't exist
+        if (!enrollment.course || !enrollment.course._id) {
+          return {
+            ...enrollment.toObject(),
+            progress: 0,
+            totalLessons: 0,
+          };
+        }
+
+        // Calculate progress
+        const totalLessons = await LessonService.countLessonsForCourse(
+          enrollment.course._id.toString()
+        );
+        const completedCount = enrollment.completedLessons.length;
+        const progress = totalLessons > 0 ? (completedCount / totalLessons) * 100 : 0;
+
+        return {
+          ...enrollment.toObject(),
+          progress: Math.round(progress),
+          totalLessons,
+        };
+      })
     );
 
-    return {
-      data: enrollmentsWithProgress,
-      pagination: result.pagination,
-    };
-
+    return PaginationUtil.createPaginationResult(
+      enrollmentsWithProgress,
+      totalItems,
+      options
+    );
   }
 
-   static async getStudentsForCourse(
+  // Get students enrolled in a course (used by CourseController)
+  static async getStudentsForCourse(
     courseId: string,
     options: PaginationOptions
   ): Promise<PaginationResult<IUser>> {
     const queryOptions = PaginationUtil.createMongoQueryOptions(options);
     const filter = { course: courseId };
-
     const totalItems = await Enrollment.countDocuments(filter);
 
     const enrollments = await Enrollment.find(filter)
-      .populate("student", "name email createdAt") // Get student's name, email, and registration date
+      .populate("student", "name email createdAt")
       .sort(queryOptions.sort)
       .skip(queryOptions.skip)
       .limit(queryOptions.limit);
 
-    // Extract just the student data to return a clean list of users
     const students = enrollments.map(
-      (enrollment) => enrollment.student
+      enrollment => enrollment.student
     ) as unknown as IUser[];
 
     return PaginationUtil.createPaginationResult(students, totalItems, options);

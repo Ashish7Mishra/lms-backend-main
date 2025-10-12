@@ -7,7 +7,6 @@ import { EnrollmentService } from "../../enrollment/services/enrollment.service"
 export class CourseController {
 
   static async createCourse(req: Request, res: Response): Promise<void> {
-   
     try {
       const { title, description, category } = req.body;
 
@@ -15,21 +14,20 @@ export class CourseController {
         ResponseUtil.validationError(res, "Please provide all fields");
         return;
       }
+      
       if (!req.file) {
         ResponseUtil.validationError(res, "Course image is required");
         return;
       }
 
-      const courseData: any = {
+      const course = await CourseService.createCourse({
         title,
         description,
         category,
         instructor: (req.user!._id as any).toString(),
         imageUrl: req.file.path,
-      };
+      });
 
-
-      const course = await CourseService.createCourse(courseData);
       ResponseUtil.success(res, course, "Course created successfully", 201);
     } catch (error: any) {
       console.error(error);
@@ -39,15 +37,12 @@ export class CourseController {
 
   static async getAllCourses(req: Request, res: Response): Promise<void> {
     try {
-      const paginationOptions = PaginationUtil.validatePaginationParams(
-        req,
-        res
-      );
+      const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
       if (!paginationOptions) return;
+
       const userId = req.user?._id?.toString();
-
-
       const result = await CourseService.getAllCourses(paginationOptions, userId);
+
       ResponseUtil.successWithPagination(
         res,
         result.data,
@@ -62,9 +57,7 @@ export class CourseController {
 
   static async getCourseById(req: Request, res: Response): Promise<void> {
     try {
-      const { id } = req.params;
-
-      const course = await CourseService.getCourseById(id);
+      const course = await CourseService.getCourseById(req.params.id);
 
       if (course) {
         ResponseUtil.success(res, course, "Course retrieved successfully");
@@ -86,16 +79,10 @@ export class CourseController {
       const courseId = req.params.id;
       const instructorId = (req.user!._id as any).toString();
 
-      // Check if user owns the course
-      const isOwner = await CourseService.checkCourseOwnership(
-        courseId,
-        instructorId
-      );
+      // Check ownership
+      const isOwner = await CourseService.checkCourseOwnership(courseId, instructorId);
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "User not authorized to update this course"
-        );
+        ResponseUtil.forbidden(res, "User not authorized to update this course");
         return;
       }
 
@@ -105,14 +92,9 @@ export class CourseController {
       if (title) updateData.title = title;
       if (description) updateData.description = description;
       if (category) updateData.category = category;
-      if (req.file) {
-        updateData.imageUrl = req.file.path;
-      }
+      if (req.file) updateData.imageUrl = req.file.path;
 
-      const updatedCourse = await CourseService.updateCourse(
-        courseId,
-        updateData
-      );
+      const updatedCourse = await CourseService.updateCourse(courseId, updateData);
       ResponseUtil.success(res, updatedCourse, "Course updated successfully");
     } catch (error: any) {
       console.error(error);
@@ -129,16 +111,10 @@ export class CourseController {
       const courseId = req.params.id;
       const instructorId = (req.user!._id as any).toString();
 
-      // Check if user owns the course
-      const isOwner = await CourseService.checkCourseOwnership(
-        courseId,
-        instructorId
-      );
+      // Check ownership
+      const isOwner = await CourseService.checkCourseOwnership(courseId, instructorId);
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "User not authorized to delete this course"
-        );
+        ResponseUtil.forbidden(res, "User not authorized to delete this course");
         return;
       }
 
@@ -157,20 +133,17 @@ export class CourseController {
       }
     }
   }
-  
 
   static async getMyCreatedCourses(req: Request, res: Response): Promise<void> {
     try {
-      const paginationOptions = PaginationUtil.validatePaginationParams(
-        req,
-        res
-      );
+      const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
       if (!paginationOptions) return;
 
       const result = await CourseService.getCoursesByInstructor(
         (req.user!._id as any).toString(),
         paginationOptions
       );
+
       ResponseUtil.successWithPagination(
         res,
         result.data,
@@ -185,32 +158,20 @@ export class CourseController {
 
   static async getEnrolledStudents(req: Request, res: Response): Promise<void> {
     try {
-      
       const { courseId } = req.params;
       const instructorId = (req.user!._id as any).toString();
 
-    
-      const isOwner = await CourseService.checkCourseOwnership(
-        courseId,
-        instructorId
-      );
+      // Check ownership
+      const isOwner = await CourseService.checkCourseOwnership(courseId, instructorId);
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "You are not authorized to view students for this course"
-        );
+        ResponseUtil.forbidden(res, "You are not authorized to view students for this course");
         return;
       }
 
-      // Handle pagination
       const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
       if (!paginationOptions) return;
 
-      // Fetch the students from the EnrollmentService
-      const result = await EnrollmentService.getStudentsForCourse(
-        courseId,
-        paginationOptions
-      );
+      const result = await EnrollmentService.getStudentsForCourse(courseId, paginationOptions);
 
       ResponseUtil.successWithPagination(
         res,
@@ -228,6 +189,3 @@ export class CourseController {
     }
   }
 }
-
-  
-

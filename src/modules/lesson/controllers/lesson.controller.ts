@@ -5,6 +5,7 @@ import { PaginationUtil } from "../../../shared/utils/pagination.util";
 import { ResponseUtil } from "../../../shared/utils/response.util";
 
 export class LessonController {
+  
   static async addLessonToCourse(req: Request, res: Response): Promise<void> {
     try {
       const { title, content, order } = req.body;
@@ -15,11 +16,10 @@ export class LessonController {
         return;
       }
 
-       if (!req.file) {
+      if (!req.file) {
         ResponseUtil.validationError(res, "A lesson video is required");
         return;
       }
-
 
       const course = await CourseService.getCourseById(courseId);
       if (!course) {
@@ -32,10 +32,7 @@ export class LessonController {
         (req.user!._id as any).toString()
       );
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "User not authorized to add lessons to this course"
-        );
+        ResponseUtil.forbidden(res, "User not authorized to add lessons to this course");
         return;
       }
 
@@ -47,10 +44,6 @@ export class LessonController {
         videoUrl: req.file.path,
       });
 
-      if (req.file) {
-        lesson.videoUrl = req.file.path;
-      }
-
       ResponseUtil.success(res, lesson, "Lesson created successfully", 201);
     } catch (error: any) {
       console.error(error);
@@ -61,18 +54,16 @@ export class LessonController {
   static async getLessonsForCourse(req: Request, res: Response): Promise<void> {
     try {
       const { courseId } = req.params;
-      const paginationOptions = PaginationUtil.validatePaginationParams(
-        req,
-        res
-      );
+      const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
       if (!paginationOptions) return;
-      const userId = req.user?._id?.toString();
 
+      const userId = req.user?._id?.toString();
       const result = await LessonService.getLessonsForCourse(
         courseId,
         paginationOptions,
         userId
       );
+
       ResponseUtil.successWithPagination(
         res,
         result.data,
@@ -87,18 +78,12 @@ export class LessonController {
 
   static async updateLesson(req: Request, res: Response): Promise<void> {
     try {
-      const lessonId = req.params.lessonId;
+      const { lessonId } = req.params;
       const instructorId = (req.user!._id as any).toString();
 
-      const isOwner = await LessonService.checkLessonOwnership(
-        lessonId,
-        instructorId
-      );
+      const isOwner = await LessonService.checkLessonOwnership(lessonId, instructorId);
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "User not authorized to update this lesson"
-        );
+        ResponseUtil.forbidden(res, "User not authorized to update this lesson");
         return;
       }
 
@@ -108,45 +93,23 @@ export class LessonController {
       if (title) updateData.title = title;
       if (content) updateData.content = content;
       if (order) updateData.order = order;
+      if (req.file) updateData.videoUrl = req.file.path;
 
-      if (req.file) {
-        updateData.videoUrl = req.file.path;
-      }
-
-      const updatedLesson = await LessonService.updateLesson(
-        lessonId,
-        updateData
-      );
+      const updatedLesson = await LessonService.updateLesson(lessonId, updateData);
       ResponseUtil.success(res, updatedLesson, "Lesson updated successfully");
     } catch (error: any) {
-      console.error(error);
-      if (error.message === "Lesson not found") {
-        ResponseUtil.notFound(res, error.message);
-      } else if (
-        error.message === "Server error: Could not populate course details."
-      ) {
-        ResponseUtil.error(res, error.message, 500);
-      } else {
-        ResponseUtil.error(res, "Server Error", 500);
-      }
+      LessonController.handleLessonError(res, error);
     }
   }
 
   static async deleteLesson(req: Request, res: Response): Promise<void> {
     try {
-      const lessonId = req.params.lessonId;
+      const { lessonId } = req.params;
       const instructorId = (req.user!._id as any).toString();
 
-      // Check if user owns the lesson
-      const isOwner = await LessonService.checkLessonOwnership(
-        lessonId,
-        instructorId
-      );
+      const isOwner = await LessonService.checkLessonOwnership(lessonId, instructorId);
       if (!isOwner) {
-        ResponseUtil.forbidden(
-          res,
-          "User not authorized to delete this lesson"
-        );
+        ResponseUtil.forbidden(res, "User not authorized to delete this lesson");
         return;
       }
 
@@ -157,16 +120,19 @@ export class LessonController {
         "Lesson deleted successfully"
       );
     } catch (error: any) {
-      console.error(error);
-      if (error.message === "Lesson not found") {
-        ResponseUtil.notFound(res, error.message);
-      } else if (
-        error.message === "Server error: Could not populate course details."
-      ) {
-        ResponseUtil.error(res, error.message, 500);
-      } else {
-        ResponseUtil.error(res, "Server Error", 500);
-      }
+      LessonController.handleLessonError(res, error);
+    }
+  }
+
+  // Helper method for error handling
+  private static handleLessonError(res: Response, error: any): void {
+    console.error(error);
+    if (error.message === "Lesson not found") {
+      ResponseUtil.notFound(res, error.message);
+    } else if (error.message === "Server error: Could not populate course details.") {
+      ResponseUtil.error(res, error.message, 500);
+    } else {
+      ResponseUtil.error(res, "Server Error", 500);
     }
   }
 }

@@ -9,56 +9,45 @@ export class UserService {
     password: string;
     role: "Student" | "Instructor";
   }): Promise<IUser> {
-    const { name, email, password, role } = userData;
-
-    // Check if user already exists
-    const userExist = await User.findOne({ email });
+    // Checking if user already exists
+    const userExist = await User.findOne({ email: userData.email });
     if (userExist) {
       throw new Error("User with this email already exists");
     }
 
-    // Hash password
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash(password, salt);
+    const hashedPassword = await bcrypt.hash(userData.password, 10);
 
-    // Create user
-    const user = await User.create({
-      name,
-      email,
+    return await User.create({
+      ...userData,
       password: hashedPassword,
-      role,
+      isActive: true, 
     });
-
-    return user;
   }
 
   static async findUserByEmail(email: string): Promise<IUser | null> {
-    return await User.findOne({ email });
+    return User.findOne({ email });
   }
 
   static async findUserById(id: string): Promise<IUser | null> {
-    return await User.findById(id).select("-password");
+    return User.findById(id).select("-password");
   }
 
   static async validatePassword(
     password: string,
     hashedPassword: string
   ): Promise<boolean> {
-    return await bcrypt.compare(password, hashedPassword);
+    return bcrypt.compare(password, hashedPassword);
   }
 
   static generateToken(userId: string, role: string): string {
-    const payload = {
-      id: userId,
-      role,
-    };
-
-    return jwt.sign(payload, process.env.JWT_SECRET as string, {
-      expiresIn: "1d",
-    });
+    return jwt.sign(
+      { id: userId, role },
+      process.env.JWT_SECRET as string,
+      { expiresIn: "1d" }
+    );
   }
 
   static async getUserProfile(userId: string): Promise<IUser | null> {
-    return await User.findById(userId).select("-password");
+    return User.findById(userId).select("-password");
   }
 }

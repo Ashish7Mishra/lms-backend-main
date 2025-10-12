@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 import { ICourse } from "../../course/models/course.model";
 
 export interface ILesson extends Document {
@@ -11,35 +11,15 @@ export interface ILesson extends Document {
   updatedAt: Date;
 }
 
-const lessonSchema: Schema<ILesson> = new mongoose.Schema(
+const lessonSchema = new Schema<ILesson>(
   {
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      required: true,
-      ref: "Course",
-    },
-    title: {
-      type: String,
-      required: true,
-    },
-    content: {
-      type: String,
-      required: true,
-    },
-    order: {
-      type: Number,
-      required: true,
-    },
-    videoUrl: {
-      type: String,
-      required:true,
-    },
+    course: { type: Schema.Types.ObjectId, required: true, ref: "Course" },
+    title: { type: String, required: true },
+    content: { type: String, required: true },
+    order: { type: Number, required: true },
+    videoUrl: { type: String, required: true },
   },
-  {
-    timestamps: true,
-  }
+  { timestamps: true }
 );
 
-const Lesson: Model<ILesson> = mongoose.model<ILesson>("Lesson", lessonSchema);
-
-export default Lesson;
+export default mongoose.model<ILesson>("Lesson", lessonSchema);

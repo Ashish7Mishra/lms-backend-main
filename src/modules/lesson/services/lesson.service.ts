@@ -1,5 +1,4 @@
 import Lesson, { ILesson } from "../models/lesson.model";
-import { CourseService } from "../../course/services/course.service";
 import mongoose from "mongoose";
 import {
   PaginationOptions,
@@ -9,6 +8,7 @@ import {
 import Enrollment from "../../enrollment/models/enrollment.model";
 
 export class LessonService {
+  
   static async createLesson(lessonData: {
     title: string;
     content: string;
@@ -16,8 +16,7 @@ export class LessonService {
     course: string;
     videoUrl: string;
   }): Promise<ILesson> {
-    const lesson = await Lesson.create(lessonData);
-    return lesson;
+    return Lesson.create(lessonData);
   }
 
   static async getLessonsForCourse(
@@ -42,23 +41,26 @@ export class LessonService {
       }));
       return PaginationUtil.createPaginationResult(lessonsWithDefault, totalItems, options);
     }
-     const enrollment = await Enrollment.findOne({
+
+    const enrollment = await Enrollment.findOne({
       student: userId,
       course: courseId,
     });
-     const completedLessonSet = new Set(
+
+    const completedLessonSet = new Set(
       enrollment ? enrollment.completedLessons.map(id => id.toString()) : []
     );
+
     const lessonsWithCompletion = lessons.map(lesson => ({
       ...lesson,
       isCompleted: completedLessonSet.has(lesson._id.toString()),
     }));
-     return PaginationUtil.createPaginationResult(lessonsWithCompletion, totalItems, options);
 
+    return PaginationUtil.createPaginationResult(lessonsWithCompletion, totalItems, options);
   }
 
   static async getLessonById(lessonId: string): Promise<ILesson | null> {
-    return await Lesson.findById(lessonId).populate("course");
+    return Lesson.findById(lessonId).populate("course");
   }
 
   static async updateLesson(
@@ -76,7 +78,7 @@ export class LessonService {
     }
 
     Object.assign(lesson, updateData);
-    return await lesson.save();
+    return lesson.save();
   }
 
   static async deleteLesson(lessonId: string): Promise<void> {
@@ -104,6 +106,6 @@ export class LessonService {
   }
 
   static async countLessonsForCourse(courseId: string): Promise<number> {
-    return await Lesson.countDocuments({ course: courseId });
+    return Lesson.countDocuments({ course: courseId });
   }
 }

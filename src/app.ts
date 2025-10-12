@@ -10,6 +10,8 @@ import userRoutes from "./modules/user/routes/user.routes";
 import courseRoutes from "./modules/course/routes/course.routes";
 import lessonRoutes from "./modules/lesson/routes/lesson.routes";
 import enrollmentRoutes from "./modules/enrollment/routes/enrollment.routes";
+import adminRoutes from "./modules/admin/routes/admin.routes";
+
 
 // Load environment variables
 dotenv.config();
@@ -54,5 +56,6 @@ app.use("/api/auth", userRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/lessons", lessonRoutes);
 app.use("/api/enrollments", enrollmentRoutes);
+app.use("/api/admin", adminRoutes);
 
 export default app;

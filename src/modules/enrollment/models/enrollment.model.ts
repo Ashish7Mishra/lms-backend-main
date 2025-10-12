@@ -1,4 +1,4 @@
-import mongoose, { Document, Schema, Model } from "mongoose";
+import mongoose, { Document, Schema } from "mongoose";
 
 export interface IEnrollment extends Document {
   student: mongoose.Types.ObjectId;
@@ -8,34 +8,16 @@ export interface IEnrollment extends Document {
   updatedAt: Date;
 }
 
-const enrollmentSchema: Schema<IEnrollment> = new mongoose.Schema(
+const enrollmentSchema = new Schema<IEnrollment>(
   {
-    student: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
-      required: true,
-    },
-    course: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "Course",
-      required: true,
-    },
+    student: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    course: { type: Schema.Types.ObjectId, ref: "Course", required: true },
     completedLessons: {
-      type: [
-        {
-          type: mongoose.Schema.Types.ObjectId,
-          ref: "Lesson",
-        },
-      ],
+      type: [{ type: Schema.Types.ObjectId, ref: "Lesson" }],
       default: [],
     },
   },
   { timestamps: true }
 );
 
-const Enrollment: Model<IEnrollment> = mongoose.model<IEnrollment>(
-  "Enrollment",
-  enrollmentSchema
-);
-
-export default Enrollment;
+export default mongoose.model<IEnrollment>("Enrollment", enrollmentSchema);
