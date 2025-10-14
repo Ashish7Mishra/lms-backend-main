@@ -33,4 +33,34 @@ export class ValidationUtil {
       missingFields,
     };
   }
+
+  static isValidUrl(url: string): boolean {
+    try {
+      const urlObj = new URL(url);
+      return urlObj.protocol === "http:" || urlObj.protocol === "https:";
+    } catch (error) {
+      return false;
+    }
+  }
+
+  static isValidVideoUrl(url: string): boolean {
+    if (!this.isValidUrl(url)) return false;
+
+    const allowedDomains = [
+      "youtube.com",
+      "youtu.be",
+      "vimeo.com",
+      "dailymotion.com",
+      "wistia.com",
+      "cloudinary.com",
+    ];
+
+    try {
+      const urlObj = new URL(url);
+      return allowedDomains.some(domain => urlObj.hostname.includes(domain));
+    } catch {
+      return false;
+    }
+  }
+
 }

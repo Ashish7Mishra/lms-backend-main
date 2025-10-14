@@ -7,6 +7,7 @@ export interface ILesson extends Document {
   content: string;
   order: number;
   videoUrl: string;
+  videoType: "upload" | "link";
   createdAt: Date;
   updatedAt: Date;
 }
@@ -18,6 +19,12 @@ const lessonSchema = new Schema<ILesson>(
     content: { type: String, required: true },
     order: { type: Number, required: true },
     videoUrl: { type: String, required: true },
+    videoType: {
+      type: String,
+      enum: ["upload", "link"],
+      required: true,
+      default: "upload"
+    },
   },
   { timestamps: true }
 );

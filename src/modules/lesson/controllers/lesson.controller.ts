@@ -3,12 +3,13 @@ import { LessonService } from "../services/lesson.service";
 import { CourseService } from "../../course/services/course.service";
 import { PaginationUtil } from "../../../shared/utils/pagination.util";
 import { ResponseUtil } from "../../../shared/utils/response.util";
+import { ValidationUtil } from "../../../shared/utils/validation.util";
 
 export class LessonController {
-  
+
   static async addLessonToCourse(req: Request, res: Response): Promise<void> {
     try {
-      const { title, content, order } = req.body;
+      const { title, content, order, videoLink } = req.body;
       const { courseId } = req.params;
 
       if (!title || !content || !order) {
@@ -16,8 +17,16 @@ export class LessonController {
         return;
       }
 
-      if (!req.file) {
-        ResponseUtil.validationError(res, "A lesson video is required");
+      if (!req.file && !videoLink) {
+        ResponseUtil.validationError(
+          res,
+          "Please either upload a video file or provide a video link"
+        );
+        return;
+      }
+
+      if (videoLink && !ValidationUtil.isValidUrl(videoLink)) {
+        ResponseUtil.validationError(res, "Please provide a valid video URL");
         return;
       }
 
@@ -35,13 +44,16 @@ export class LessonController {
         ResponseUtil.forbidden(res, "User not authorized to add lessons to this course");
         return;
       }
+      const videoUrl = req.file ? req.file.path : videoLink;
+      const videoType = req.file ? "upload" : "link";
 
       const lesson = await LessonService.createLesson({
         title,
         content,
         order,
         course: courseId,
-        videoUrl: req.file.path,
+        videoUrl,
+        videoType,
       });
 
       ResponseUtil.success(res, lesson, "Lesson created successfully", 201);
@@ -87,13 +99,25 @@ export class LessonController {
         return;
       }
 
-      const { title, content, order } = req.body;
+      const { title, content, order, videoLink } = req.body;  // ← Add videoLink
       const updateData: any = {};
 
       if (title) updateData.title = title;
       if (content) updateData.content = content;
       if (order) updateData.order = order;
-      if (req.file) updateData.videoUrl = req.file.path;
+
+      // Handle video update
+      if (req.file) {
+        updateData.videoUrl = req.file.path;
+        updateData.videoType = "upload";
+      } else if (videoLink) {
+        if (!ValidationUtil.isValidUrl(videoLink)) {
+          ResponseUtil.validationError(res, "Please provide a valid video URL");
+          return;
+        }
+        updateData.videoUrl = videoLink;
+        updateData.videoType = "link";
+      }
 
       const updatedLesson = await LessonService.updateLesson(lessonId, updateData);
       ResponseUtil.success(res, updatedLesson, "Lesson updated successfully");

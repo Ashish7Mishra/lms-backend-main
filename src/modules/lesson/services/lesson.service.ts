@@ -15,6 +15,7 @@ export class LessonService {
     order: number;
     course: string;
     videoUrl: string;
+    videoType: "upload" | "link";
   }): Promise<ILesson> {
     return Lesson.create(lessonData);
   }
@@ -70,6 +71,7 @@ export class LessonService {
       content?: string;
       order?: number;
       videoUrl?: string;
+      videoType?: "upload" | "link"; 
     }
   ): Promise<ILesson | null> {
     const lesson = await Lesson.findById(lessonId);
