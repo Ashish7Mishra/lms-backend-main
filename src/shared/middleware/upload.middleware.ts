@@ -31,7 +31,6 @@ export const uploadCourseImage = multer({
   storage: courseImageStorage 
 }).single("image");
 
-// Lesson Video Upload (UPDATED - Now Optional)
 export const uploadLessonVideo = (req: Request, res: Response, next: NextFunction) => {
   const upload = multer({
     storage: lessonVideoStorage,
@@ -48,7 +47,6 @@ export const uploadLessonVideo = (req: Request, res: Response, next: NextFunctio
     },
   }).single("video");
 
-  // run multer first
   upload(req, res, (err: any) => {
     if (err instanceof multer.MulterError) {
       return res.status(400).json({ success: false, message: err.message });
@@ -56,10 +54,8 @@ export const uploadLessonVideo = (req: Request, res: Response, next: NextFunctio
       return res.status(400).json({ success: false, message: err.message });
     }
 
-    // ✅ Now `req.body` is available
     const videoLink = req.body?.videoLink;
 
-    // If videoLink is provided, skip file upload validation
     if (videoLink) {
       console.log("Received video link instead of file:", videoLink);
     }

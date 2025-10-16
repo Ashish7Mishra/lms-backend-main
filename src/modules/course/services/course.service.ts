@@ -48,7 +48,6 @@ export class CourseService {
       .limit(queryOptions.limit)
       .lean();
 
-    // If no user, return courses with default enrollment status
     if (!userId) {
       const coursesWithDefaults = courses.map((course) => ({
         ...course,
@@ -67,13 +66,11 @@ export class CourseService {
 
     const enrolledCourseIds = userEnrollments.map(e => e.course);
 
-    // Get lesson counts for enrolled courses
     const lessonCountsResult = await Lesson.aggregate([
       { $match: { course: { $in: enrolledCourseIds } } },
       { $group: { _id: '$course', totalLessons: { $sum: 1 } } }
     ]);
 
-    // Create maps for quick lookup
     const enrollmentMap = new Map(
       userEnrollments.map((e) => [e.course.toString(), e])
     );
@@ -81,7 +78,7 @@ export class CourseService {
       lessonCountsResult.map(lc => [lc._id.toString(), lc.totalLessons])
     );
 
-    // Add enrollment and progress to each course
+    // Added enrollment and progress to each course
     const coursesWithProgress = courses.map((course) => {
       const enrollment = enrollmentMap.get(course._id.toString());
 

@@ -11,7 +11,6 @@ import {
 
 export class AdminService {
   
-  // ===== DASHBOARD =====
   static async getDashboardStats() {
     const [totalStudents, totalInstructors, totalCourses, totalEnrollments] =
       await Promise.all([
@@ -126,7 +125,6 @@ export class AdminService {
     return user;
   }
 
-  // ===== COURSE MANAGEMENT =====
   static async getAllCourses(
     options: PaginationOptions,
     filters?: { category?: string; isActive?: string; search?: string; instructorId?: string }

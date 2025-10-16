@@ -29,7 +29,7 @@ const extractAndVerifyToken = async (authHeader?: string) => {
   }
 };
 
-// Optional authentication - doesn't fail if no token
+// optional authentcation - doesn't fail if no token
 export const injectUser = async (
   req: Request,
   res: Response,
@@ -39,7 +39,7 @@ export const injectUser = async (
   next();
 };
 
-// Required authentication - fails if no valid token
+// required authentication - fails if no valid token
 export const protect = async (
   req: Request,
   res: Response,

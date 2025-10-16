@@ -33,7 +33,6 @@ export class EnrollmentService {
     );
   }
 
-  // MAIN METHOD: Get student enrollments with progress (used by controller)
   static async getStudentEnrollmentsWithProgress(
     studentId: string,
     options: PaginationOptions
@@ -41,7 +40,6 @@ export class EnrollmentService {
     const queryOptions = PaginationUtil.createMongoQueryOptions(options);
     const totalItems = await Enrollment.countDocuments({ student: studentId });
 
-    // Fetch enrollments with populated data
     const enrollments = await Enrollment.find({ student: studentId })
       .populate({
         path: "course",
@@ -56,10 +54,9 @@ export class EnrollmentService {
       .skip(queryOptions.skip)
       .limit(queryOptions.limit);
 
-    // Calculate progress for each enrollment
     const enrollmentsWithProgress = await Promise.all(
       enrollments.map(async (enrollment) => {
-        // Handle case where course doesn't exist
+
         if (!enrollment.course || !enrollment.course._id) {
           return {
             ...enrollment.toObject(),
@@ -90,7 +87,6 @@ export class EnrollmentService {
     );
   }
 
-  // Get students enrolled in a course (used by CourseController)
   static async getStudentsForCourse(
     courseId: string,
     options: PaginationOptions

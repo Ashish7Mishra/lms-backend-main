@@ -99,7 +99,7 @@ export class LessonController {
         return;
       }
 
-      const { title, content, order, videoLink } = req.body;  // ← Add videoLink
+      const { title, content, order, videoLink } = req.body;
       const updateData: any = {};
 
       if (title) updateData.title = title;

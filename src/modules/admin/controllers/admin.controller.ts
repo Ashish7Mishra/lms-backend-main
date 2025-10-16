@@ -7,7 +7,6 @@ import { ResponseUtil } from "../../../shared/utils/response.util";
 
 export class AdminController {
   
-  // ===== DASHBOARD =====
   static async getDashboard(req: Request, res: Response): Promise<void> {
     try {
       const stats = await AdminService.getDashboardStats();
@@ -24,7 +23,6 @@ export class AdminController {
     }
   }
 
-  // ===== USER MANAGEMENT =====
   static async getAllUsers(req: Request, res: Response): Promise<void> {
     try {
       const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
@@ -82,7 +80,6 @@ export class AdminController {
     }
   }
 
-  // ===== COURSE MANAGEMENT =====
   static async getAllCourses(req: Request, res: Response): Promise<void> {
     try {
       const paginationOptions = PaginationUtil.validatePaginationParams(req, res);
