@@ -1,3 +1,7 @@
+
+// Entry point of the application
+
+
 import app from "./app";
 
 // Server
